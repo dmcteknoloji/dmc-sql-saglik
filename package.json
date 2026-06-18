@@ -1,0 +1,45 @@
+{
+  "name": "dmc-sql-saglik",
+  "version": "1.0.0",
+  "description": "DMC SQL Saglik — SQL Server saglik/teshis asistani kurulum uygulamasi (Electron). Kurulum sihirbazi + gomulu read-only MCP sunucusu.",
+  "main": "main.js",
+  "author": "DMC Bilgi Teknolojileri (caglarozenc.com)",
+  "license": "MIT",
+  "scripts": {
+    "start": "electron .",
+    "dist": "electron-builder --win",
+    "postinstall": "cd mcp && npm install"
+  },
+  "dependencies": {
+    "mssql": "^11.0.1"
+  },
+  "devDependencies": {
+    "electron": "^31.0.0",
+    "electron-builder": "^25.0.0"
+  },
+  "build": {
+    "appId": "com.dmcteknoloji.sqlsaglik",
+    "productName": "DMC SQL Saglik",
+    "files": [
+      "main.js",
+      "preload.js",
+      "renderer/**/*"
+    ],
+    "extraResources": [
+      {
+        "from": "mcp",
+        "to": "mcp",
+        "filter": ["**/*"]
+      }
+    ],
+    "win": {
+      "target": "nsis"
+    },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true
+    }
+  }
+}

@@ -1,0 +1,11 @@
+{
+  "name": "mssql-health-engine",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "DMC SQL Saglik uygulamasinin gomulu MCP sunucusu (salt-okunur).",
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.0.0",
+    "mssql": "^11.0.1"
+  }
+}

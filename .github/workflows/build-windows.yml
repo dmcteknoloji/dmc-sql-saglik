@@ -1,0 +1,35 @@
+name: build-windows
+
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      # Electron uygulamasinin bagimliliklari (postinstall mcp/ deps'i de kurar)
+      - name: Install app deps
+        run: npm install
+
+      # Gomulu MCP motorunun bagimliliklari (extraResources ile paketlenecek)
+      - name: Install MCP engine deps
+        run: npm install
+        working-directory: mcp
+
+      # Windows installer (.exe) uret
+      - name: Build installer
+        run: npm run dist
+
+      - name: Upload installer
+        uses: actions/upload-artifact@v4
+        with:
+          name: DMC-SQL-Saglik-Setup
+          path: dist/*.exe

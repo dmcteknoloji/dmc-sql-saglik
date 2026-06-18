@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8" />
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline';" />
+<title>DMC SQL Saglik — Kurulum</title>
+<style>
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; font-family: "Segoe UI", system-ui, Arial, sans-serif;
+    background: linear-gradient(160deg, #0a1530, #0c2148 55%, #123a78);
+    color: #eaf1fd; height: 100vh; overflow: hidden;
+  }
+  .wrap { padding: 28px 30px; height: 100%; display: flex; flex-direction: column; }
+  .kicker { color: #7af0ff; font-size: 12px; font-weight: 700; letter-spacing: 2px; }
+  h1 { font-size: 24px; margin: 4px 0 2px; }
+  .sub { color: #a9c2e6; font-size: 14px; margin-bottom: 18px; }
+  label { display: block; font-size: 13px; color: #bcd4f2; margin: 12px 0 5px; }
+  input {
+    width: 100%; padding: 11px 13px; border-radius: 9px;
+    border: 1px solid #2c4a7e; background: #0e1f44; color: #fff; font-size: 14px; outline: none;
+  }
+  input:focus { border-color: #2ec5ff; }
+  .row { display: flex; gap: 12px; }
+  .row > div { flex: 1; }
+  .btns { display: flex; gap: 12px; margin-top: 20px; }
+  button {
+    flex: 1; padding: 12px; border: none; border-radius: 10px; font-size: 15px;
+    font-weight: 600; cursor: pointer;
+  }
+  .secondary { background: #16356b; color: #cfe3ff; }
+  .secondary:hover { background: #1c4080; }
+  .primary { background: linear-gradient(90deg, #2ec5ff, #7af0ff); color: #06294f; }
+  .primary:disabled { opacity: .5; cursor: not-allowed; }
+  .status { margin-top: 16px; font-size: 13.5px; min-height: 20px; padding: 10px 12px; border-radius: 9px; display: none; }
+  .status.ok { display: block; background: #0d3a2a; color: #7af0c0; border: 1px solid #1c6b4d; }
+  .status.err { display: block; background: #3a1d1d; color: #ffb4b4; border: 1px solid #7a3636; }
+  .status.info { display: block; background: #102a55; color: #bcd4f2; border: 1px solid #27406e; }
+  .note { font-size: 12px; color: #8fa9cf; margin-top: auto; padding-top: 14px; }
+  /* basari ekrani */
+  #done { display: none; text-align: center; padding-top: 10px; }
+  #done .big { font-size: 46px; }
+  #done h2 { margin: 6px 0; }
+  #done .q { text-align: left; background: #0e1f44; border: 1px solid #2c4a7e; border-radius: 10px; padding: 12px 14px; margin-top: 14px; }
+  #done .q b { color: #7af0ff; }
+  .brand { color: #7af0ff; font-weight: 700; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- FORM -->
+  <div id="form">
+    <div class="kicker">DMC · SQL SAGLIK</div>
+    <h1>SQL Server Sağlık Asistanı</h1>
+    <div class="sub">Sunucu bilgilerinizi girin, "Kur"a basın. Asistan yalnızca <b>okur</b>, hiçbir şeyi değiştirmez.</div>
+
+    <label>SQL Sunucu adı / IP <span style="color:#7e93b8">(örn. SQLSUNUCU ya da 10.0.0.5,1433)</span></label>
+    <input id="server" placeholder="SQLSUNUCU" />
+
+    <div class="row">
+      <div>
+        <label>Kullanıcı</label>
+        <input id="user" placeholder="mcp_readonly" value="mcp_readonly" />
+      </div>
+      <div>
+        <label>Şifre</label>
+        <input id="password" type="password" placeholder="••••••••" />
+      </div>
+    </div>
+
+    <label>Veritabanı <span style="color:#7e93b8">(boş bırakın = master)</span></label>
+    <input id="database" placeholder="master" value="master" />
+
+    <div class="btns">
+      <button class="secondary" id="btnTest">Bağlantıyı Test Et</button>
+      <button class="primary" id="btnInstall">Kur</button>
+    </div>
+
+    <div class="status" id="status"></div>
+
+    <div class="note">
+      Salt-okunur kullanıcıyı DMC açtıysa bilgileri size iletmiştir. Sorun olursa
+      <span class="brand">caglarozenc.com</span>.
+    </div>
+  </div>
+
+  <!-- BASARI -->
+  <div id="done">
+    <div class="big">🎉</div>
+    <h2>Kuruldu!</h2>
+    <div class="sub">Şimdi <b>Claude Desktop</b>'ı tamamen kapatıp tekrar açın ve sorun:</div>
+    <div class="q"><b>"SQL sunucumun sağlığını göster"</b></div>
+    <div class="q"><b>"Sunucum şu an neden yavaş?"</b></div>
+    <div class="q"><b>"Hangi index'ler eksik?"</b></div>
+    <div style="margin-top:16px;background:#0e2a4f;border:1px solid #2c4a7e;border-radius:10px;padding:12px 14px;font-size:13px;text-align:left">
+      💡 Anlık bakış aldın. <b>Sürekli izleme</b> (7/24, geçmiş trend, uyarı) için DMC'nin ürünü:
+      <button id="btnSentinel" style="margin-top:8px;width:100%;padding:9px;border:none;border-radius:8px;background:linear-gradient(90deg,#2ec5ff,#7af0ff);color:#06294f;font-weight:600;cursor:pointer">SentinelDB360'ı keşfet →</button>
+    </div>
+    <div class="btns" style="margin-top:22px">
+      <button class="secondary" id="btnConfig">Ayar dosyasını göster</button>
+      <button class="primary" id="btnClose">Kapat</button>
+    </div>
+  </div>
+
+</div>
+<script src="renderer.js"></script>
+</body>
+</html>

@@ -6,4 +6,5 @@ contextBridge.exposeInMainWorld("api", {
   openPath: (p) => ipcRenderer.invoke("open-path", p),
   openUrl: (u) => ipcRenderer.invoke("open-url", u),
   copyConfig: (c) => ipcRenderer.invoke("copy-config", c),
+  quickScan: (c) => ipcRenderer.invoke("quick-scan", c),
 });

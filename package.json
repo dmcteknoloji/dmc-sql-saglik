@@ -1,6 +1,6 @@
 {
   "name": "dmc-sql-saglik",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "DMC SQL Saglik — SQL Server saglik/teshis asistani kurulum uygulamasi (Electron). Kurulum sihirbazi + gomulu read-only MCP sunucusu.",
   "main": "main.js",
   "author": "DMC Bilgi Teknolojileri (caglarozenc.com)",

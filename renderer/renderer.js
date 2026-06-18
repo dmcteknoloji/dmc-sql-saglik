@@ -69,3 +69,67 @@ $("btnCopy")?.addEventListener("click", async (e) => {
   const r = await window.api.copyConfig(readForm());
   $("btnCopy").textContent = r.ok ? "Kopyalandı ✓ (istemcinin MCP ayarına yapıştır)" : "Kopyalanamadı";
 });
+
+
+// --- Hizli Tarama ---------------------------------------------------------
+function scanCard(state, ico, lbl, val) {
+  return `<div class="card ${state}"><span class="ico">${ico}</span><span class="lbl">${lbl}</span><span class="val">${val}</span></div>`;
+}
+
+function renderScan(r) {
+  const h = r.health || {};
+  const gun = h.uptime_saat != null ? Math.floor(h.uptime_saat / 24) : null;
+  $("scanHead").innerHTML = h.makine
+    ? `<b>${h.makine}</b> · ${h.edition || ""} ${h.surum || ""}<br/>${gun != null ? gun + " gün uptime" : ""} · ${h.db ?? "?"} veritabanı`
+    : "Sunucu bilgisi alınamadı";
+
+  const cards = [];
+  if (h.offline > 0) cards.push(scanCard("bad", "⛔", "Online olmayan DB", h.offline));
+
+  const bl = r.blocking;
+  if (bl && bl.n != null) cards.push(scanCard(bl.n > 0 ? "warn" : "", bl.n > 0 ? "⚠" : "✓", "Blocking (engellenen oturum)", bl.n));
+
+  const w = r.wait;
+  if (w && w.tur) cards.push(scanCard(w.yuzde >= 40 ? "warn" : "", "◔", "En çok bekleme", `${w.tur} · %${w.yuzde}`));
+
+  const mi = r.missing;
+  if (mi && mi.n != null) cards.push(scanCard(mi.n > 0 ? "warn" : "", mi.n > 0 ? "⚠" : "✓", "Eksik index önerisi", mi.n));
+
+  const b = r.backup;
+  if (b && b._err) cards.push(scanCard("", "🔒", "Yedek durumu (msdb izni gerekli)", "—"));
+  else if (b && b.db) {
+    if (b.saat == null) cards.push(scanCard("bad", "⛔", `Full yedeği YOK: ${b.db}`, "—"));
+    else cards.push(scanCard(b.saat > 24 ? "warn" : "", b.saat > 24 ? "⚠" : "✓", `En eski full yedek: ${b.db}`, `${b.saat} saat önce`));
+  }
+
+  const d = r.disk;
+  if (d && d.bos_yuzde != null) {
+    const st = d.bos_yuzde < 15 ? "bad" : (d.bos_yuzde < 25 ? "warn" : "");
+    const ic = d.bos_yuzde < 15 ? "⛔" : (d.bos_yuzde < 25 ? "⚠" : "✓");
+    cards.push(scanCard(st, ic, `Disk boş alan (${d.disk || ""})`, `%${d.bos_yuzde}`));
+  }
+
+  const t = r.tempdb;
+  if (t && t.toplam_mb != null) cards.push(scanCard("", "💾", "tempdb toplam boyut", `${t.toplam_mb} MB`));
+
+  $("scanCards").innerHTML = cards.join("") || `<div class="card">Veri alınamadı.</div>`;
+}
+
+async function runScan() {
+  const c = readForm();
+  const err = validate(c);
+  if (err) return setStatus("err", err);
+  setStatus("info", "Taranıyor...");
+  $("btnScan").disabled = true;
+  const r = await window.api.quickScan(c);
+  $("btnScan").disabled = false;
+  if (!r.ok) return setStatus("err", "✗ Taranamadı: " + r.error);
+  $("status").className = "status";
+  renderScan(r);
+  $("form").style.display = "none";
+  $("scan").style.display = "block";
+}
+
+$("btnScan")?.addEventListener("click", runScan);
+$("btnScanBack")?.addEventListener("click", () => { $("scan").style.display = "none"; $("form").style.display = "block"; });
+$("btnScanSentinel")?.addEventListener("click", () => window.api.openUrl("https://sentineldb360.com"));

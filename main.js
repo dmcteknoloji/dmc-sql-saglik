@@ -136,3 +136,74 @@ ipcMain.handle("copy-config", async (_e, c) => {
     return { ok: true };
   } catch (e) { return { ok: false, error: e.message }; }
 });
+
+
+// --- IPC: hizli tarama (teshisleri app icinde calistir, salt-okunur) -------
+
+const SCAN_Q = {
+  health: `
+    SELECT
+      CONVERT(varchar(128), SERVERPROPERTY('MachineName')) AS makine,
+      CONVERT(varchar(64),  SERVERPROPERTY('Edition'))     AS edition,
+      CONVERT(varchar(32),  SERVERPROPERTY('ProductVersion')) AS surum,
+      si.cpu_count AS cpu,
+      DATEDIFF(HOUR, si.sqlserver_start_time, GETDATE()) AS uptime_saat,
+      (SELECT COUNT(*) FROM sys.databases) AS db,
+      (SELECT COUNT(*) FROM sys.databases WHERE state_desc <> 'ONLINE') AS offline
+    FROM sys.dm_os_sys_info si;`,
+  blocking: `SELECT COUNT(*) AS n FROM sys.dm_exec_requests WHERE blocking_session_id <> 0;`,
+  missing:  `SELECT COUNT(*) AS n FROM sys.dm_db_missing_index_group_stats;`,
+  wait: `
+    SELECT TOP 1 wait_type AS tur,
+      CONVERT(decimal(5,1), 100.0*wait_time_ms/NULLIF(SUM(wait_time_ms) OVER(),0)) AS yuzde
+    FROM sys.dm_os_wait_stats
+    WHERE waiting_tasks_count > 0 AND wait_type NOT IN (
+      'CLR_SEMAPHORE','LAZYWRITER_SLEEP','RESOURCE_QUEUE','SLEEP_TASK','SLEEP_SYSTEMTASK',
+      'SQLTRACE_BUFFER_FLUSH','WAITFOR','LOGMGR_QUEUE','CHECKPOINT_QUEUE','REQUEST_FOR_DEADLOCK_SEARCH',
+      'XE_TIMER_EVENT','BROKER_TO_FLUSH','BROKER_TASK_STOP','CLR_MANUAL_EVENT','CLR_AUTO_EVENT',
+      'DISPATCHER_QUEUE_SEMAPHORE','FT_IFTS_SCHEDULER_IDLE_WAIT','XE_DISPATCHER_WAIT','XE_DISPATCHER_JOIN',
+      'BROKER_EVENTHANDLER','TRACEWRITE','FT_IFTSHC_MUTEX','SQLTRACE_INCREMENTAL_FLUSH_SLEEP',
+      'BROKER_RECEIVE_WAITFOR','ONDEMAND_TASK_QUEUE','DBMIRROR_EVENTS_QUEUE','DBMIRRORING_CMD',
+      'BROKER_TRANSMITTER','SQLTRACE_WAIT_ENTRIES','SLEEP_BPOOL_FLUSH','DIRTY_PAGE_POLL',
+      'SP_SERVER_DIAGNOSTICS_SLEEP','HADR_WORK_QUEUE','HADR_TIMER_TASK','QDS_ASYNC_QUEUE',
+      'QDS_PERSIST_TASK_MAIN_LOOP_SLEEP','REDO_THREAD_PENDING_WORK','SLEEP_DBSTARTUP')
+    ORDER BY wait_time_ms DESC;`,
+  backup: `
+    SELECT TOP 1 d.name AS db,
+      DATEDIFF(HOUR, MAX(b.backup_finish_date), GETDATE()) AS saat
+    FROM sys.databases d
+    LEFT JOIN msdb.dbo.backupset b ON b.database_name = d.name AND b.type = 'D'
+    WHERE d.database_id > 4
+    GROUP BY d.name
+    ORDER BY MAX(b.backup_finish_date) ASC;`,
+  disk: `
+    SELECT TOP 1 vs.volume_mount_point AS disk,
+      CONVERT(decimal(5,1), 100.0*vs.available_bytes/NULLIF(vs.total_bytes,0)) AS bos_yuzde
+    FROM sys.master_files mf
+    CROSS APPLY sys.dm_os_volume_stats(mf.database_id, mf.file_id) vs
+    GROUP BY vs.volume_mount_point, vs.available_bytes, vs.total_bytes
+    ORDER BY bos_yuzde ASC;`,
+  tempdb: `
+    SELECT CONVERT(decimal(18,1), SUM(total_page_count)*8.0/1024) AS toplam_mb
+    FROM tempdb.sys.dm_db_file_space_usage;`,
+};
+
+ipcMain.handle("quick-scan", async (_e, c) => {
+  let pool;
+  try {
+    pool = await new sql.ConnectionPool(sqlConfig(c)).connect();
+    const one = async (q) => {
+      try { const r = await pool.request().query(q); return r.recordset && r.recordset[0] ? r.recordset[0] : null; }
+      catch (e) { return { _err: e.message }; }
+    };
+    const [health, blocking, missing, wait, backup, disk, tempdb] = await Promise.all([
+      one(SCAN_Q.health), one(SCAN_Q.blocking), one(SCAN_Q.missing),
+      one(SCAN_Q.wait), one(SCAN_Q.backup), one(SCAN_Q.disk), one(SCAN_Q.tempdb),
+    ]);
+    return { ok: true, health, blocking, missing, wait, backup, disk, tempdb };
+  } catch (err) {
+    return { ok: false, error: err.message };
+  } finally {
+    try { if (pool) await pool.close(); } catch {}
+  }
+});

@@ -7,7 +7,7 @@
   "license": "MIT",
   "scripts": {
     "start": "electron .",
-    "dist": "electron-builder --win",
+    "dist": "electron-builder --win --publish never",
     "postinstall": "cd mcp && npm install"
   },
   "dependencies": {
@@ -29,7 +29,9 @@
       {
         "from": "mcp",
         "to": "mcp",
-        "filter": ["**/*"]
+        "filter": [
+          "**/*"
+        ]
       }
     ],
     "win": {

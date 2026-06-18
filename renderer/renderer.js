@@ -64,3 +64,8 @@ $("btnConfig")?.addEventListener("click", () => {
 });
 $("btnClose")?.addEventListener("click", () => window.close());
 $("btnSentinel")?.addEventListener("click", () => window.api.openUrl("https://sentineldb360.com"));
+$("btnCopy")?.addEventListener("click", async (e) => {
+  e.preventDefault();
+  const r = await window.api.copyConfig(readForm());
+  $("btnCopy").textContent = r.ok ? "Kopyalandı ✓ (istemcinin MCP ayarına yapıştır)" : "Kopyalanamadı";
+});

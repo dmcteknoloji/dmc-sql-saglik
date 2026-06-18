@@ -2,7 +2,7 @@
 // Not: AI client bu uygulamayi ELECTRON_RUN_AS_NODE=1 ile cagirdiginda main.js
 // CALISMAZ; saf-node modunda dogrudan mcp/index.js (MCP sunucusu) calisir.
 
-const { app, BrowserWindow, ipcMain, shell } = require("electron");
+const { app, BrowserWindow, ipcMain, shell, clipboard } = require("electron");
 const path = require("node:path");
 const fs = require("node:fs");
 const os = require("node:os");
@@ -119,4 +119,20 @@ ipcMain.handle("open-path", async (_e, p) => {
 ipcMain.handle("open-url", async (_e, url) => {
   try { await shell.openExternal(url); return { ok: true }; }
   catch (e) { return { ok: false, error: e.message }; }
+});
+
+ipcMain.handle("copy-config", async (_e, c) => {
+  try {
+    const block = {
+      mcpServers: {
+        "mssql-health": {
+          command: process.execPath,
+          args: [mcpScriptPath()],
+          env: { ELECTRON_RUN_AS_NODE: "1", MSSQL_CONNECTION_STRING: connStr(c) },
+        },
+      },
+    };
+    clipboard.writeText(JSON.stringify(block, null, 2));
+    return { ok: true };
+  } catch (e) { return { ok: false, error: e.message }; }
 });

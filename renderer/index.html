@@ -51,8 +51,18 @@
 
   <!-- FORM -->
   <div id="form">
-    <div class="kicker">DMC · SQL SAGLIK</div>
-    <h1>SQL Server Sağlık Asistanı</h1>
+    <div style="display:flex;align-items:center;gap:14px;margin-bottom:6px">
+      <svg width="46" height="46" viewBox="0 0 512 512" style="flex:none">
+        <defs><linearGradient id="lc" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#7af0ff"/><stop offset="1" stop-color="#2ec5ff"/></linearGradient></defs>
+        <ellipse cx="256" cy="168" rx="120" ry="40" fill="none" stroke="url(#lc)" stroke-width="18"/>
+        <path d="M136 168 V300 a120 40 0 0 0 240 0 V168" fill="none" stroke="url(#lc)" stroke-width="18"/>
+        <polyline points="120,300 196,300 224,232 268,360 300,300 392,300" fill="none" stroke="#7af0ff" stroke-width="22" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      <div>
+        <div class="kicker">DMC · SQL SAĞLIK</div>
+        <h1 style="margin:0">SQL Server Sağlık Asistanı</h1>
+      </div>
+    </div>
     <div class="sub">Sunucu bilgilerinizi girin, "Kur"a basın. Asistan yalnızca <b>okur</b>, hiçbir şeyi değiştirmez.</div>
 
     <label>SQL Sunucu adı / IP <span style="color:#7e93b8">(örn. SQLSUNUCU ya da 10.0.0.5,1433)</span></label>
